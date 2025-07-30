@@ -8,13 +8,32 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing uid or text" });
   }
 
-  const message = `🆕 *New Clipboard Message!*\n\n📝 Text:\n${text}`;
+  // 🕒 اوسنی وخت جوړول
+  const time = new Date().toLocaleString("en-US", {
+    timeZone: "Asia/Kabul",
+    hour12: false
+  });
+
+  // 📩 ښکلی پیغام جوړول
+  const message = 
+`╭━━━⫸ *🆕 Clipboard Message Received!* ⫷━━━╮
+
+👤 *User ID:* \`${uid}\`
+🕒 *Time:* \`${time}\`
+
+📝 *Clipboard Text:*
+${text}
+
+╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
+──────╮
+│ 🧑🏻‍💻 *𝗕𝘂𝗶𝗹𝘁 𝗕𝘆:* 💛 𝗪𝗔𝗖𝗜𝗤
+╰────────────╯`;
 
   const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      chat_id: uid, // ← هماغه UID ته واستوي
+      chat_id: uid,
       text: message,
       parse_mode: "Markdown"
     })
