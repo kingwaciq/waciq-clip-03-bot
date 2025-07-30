@@ -2,27 +2,73 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Clipboard to Bot</title>
+  <title>Clipboard to Telegram Bot</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+      background-color: #f9f9f9;
+    }
+
+    h3 {
+      color: #333;
+    }
+
+    p {
+      color: #555;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #0a84ff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #006fd6;
+    }
+  </style>
 </head>
 <body>
-  <h3>Send clipboard to Telegram Bot</h3>
-  <button onclick="sendToBot()">📋 Send Clipboard</button>
+  <h3>📋 Send Clipboard Text to Telegram Bot</h3>
+  <p>📝 دا تڼۍ کلیک کړئ تر څو ستاسو کاپي شوی ټکسټ Telegram ته واستول شي</p>
+  <button onclick="sendToBot()">📤 Send Clipboard</button>
 
   <script>
     async function sendToBot() {
       const uid = new URLSearchParams(window.location.search).get("uid");
-      if (!uid) return alert("❌ UID not found in URL");
+      if (!uid) {
+        alert("❌ UID not found in URL (e.g. ?uid=123456)");
+        return;
+      }
 
       try {
         const text = await navigator.clipboard.readText();
-        await fetch("/api/send", {
+        if (!text) {
+          alert("❌ Clipboard is empty!");
+          return;
+        }
+
+        const res = await fetch("/api/send", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ uid, text })
         });
-        alert("✅ Sent to bot!");
+
+        if (res.ok) {
+          alert("✅ Text sent to bot successfully!");
+        } else {
+          alert("❌ Failed to send. Server responded with error.");
+        }
       } catch (err) {
-        alert("❌ Clipboard access failed");
+        alert("❌ Clipboard access failed or permission denied.");
+        console.error(err);
       }
     }
   </script>
