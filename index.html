@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Clipboard to Bot</title>
+</head>
+<body>
+  <h3>Send clipboard to Telegram Bot</h3>
+  <button onclick="sendToBot()">📋 Send Clipboard</button>
+
+  <script>
+    async function sendToBot() {
+      const uid = new URLSearchParams(window.location.search).get("uid");
+      if (!uid) return alert("❌ UID not found in URL");
+
+      try {
+        const text = await navigator.clipboard.readText();
+        await fetch("/api/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ uid, text })
+        });
+        alert("✅ Sent to bot!");
+      } catch (err) {
+        alert("❌ Clipboard access failed");
+      }
+    }
+  </script>
+</body>
+</html> 
